@@ -11,7 +11,7 @@ router.post("/login", (req, res) => {
     return;
   }
   db.query(
-    `SELECT password, username, isAdmin, id FROM users WHERE username LIKE "${username}";`,
+    `SELECT password, username, isAdmin, id FROM users WHERE username LIKE "${username}" AND isAdmin = ${admin};`,
     async function (err, results, fields) {
       if (results.length == 0) {
         res.json({ msg: "Failed" }, 403);
@@ -36,7 +36,16 @@ router.post("/verify", (req, res) => {
     }
     try {
         let decoded = jwt.verify(key, process.env.JWT_SECRET);
+        if(admin == 1){
+            if(decoded.admin == 1){
+                res.json({msg:"Success", data:{decoded}});
+            } else {
+                res.json({ msg: "Failed" }, 403);
+            }
+        } else {
         res.json({msg:"Success", data:{decoded}});
+
+        }
     } catch {
         res.json({ msg: "Failed" }, 403);
     }
