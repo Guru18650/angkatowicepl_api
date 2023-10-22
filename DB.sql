@@ -3,7 +3,7 @@ START TRANSACTION;
 SET time_zone = "+00:00";
 
 CREATE DATABASE angkatowicepl_dev;
-USER angkatowicepl_dev;
+USE angkatowicepl_dev;
 
 CREATE TABLE `categories` (
   `name` varchar(50) DEFAULT NULL
