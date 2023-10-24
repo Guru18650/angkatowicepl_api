@@ -42,9 +42,34 @@ router.post("/categorynames", (req, res) => {
 
 router.post("/subcategorynames", (req, res) => {
     db.query(
-      "SELECT * from subcategories;",
+      "SELECT subcategories.name, subcategories.category, COUNT(words.id) as count FROM `subcategories` INNER JOIN words ON words.subcategory = subcategories.name GROUP BY subcategories.name;",
       function (err, results, fields) {
-        res.json({msg:"Success", data:results});
+        let json2 = results;
+        db.query(
+            "SELECT * FROM `subcategories`;",
+            function (err, results, fields) {
+                let json1 = results;
+                const countDict = {};
+                json2.forEach(item => {
+                  const category = item.category;
+                  const name = item.name;
+                  const count = item.count;
+                  if (count !== undefined) {
+                    countDict[`${category}_${name}`] = count;
+                  }
+                });
+                
+                const mergedData = json1.map(item => {
+                  const category = item.category;
+                  const name = item.name;
+                  const countKey = `${category}_${name}`;
+                  const count = countDict[countKey] || 0; // Get COUNT value or use 0 if not present
+                  item.count = count;
+                  return item;
+                });
+                res.json({msg:"Success", data:mergedData});
+
+            });
       }
     );
 });
