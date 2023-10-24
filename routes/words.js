@@ -3,7 +3,7 @@ const router = express.Router();
 const db = require('../db');
 
 router.post("/getall", (req, res) => {
-  db.query("SELECT * FROM words;", function (err, results, fields) {
+  db.query("SELECT * FROM words ORDER BY extended, english;", function (err, results, fields) {
     res.json({msg:"Success", data:results});
   });
 });
@@ -40,6 +40,15 @@ router.post("/categorynames", (req, res) => {
     );
 });
 
+router.post("/subcategorynames", (req, res) => {
+    db.query(
+      "SELECT * from subcategories;",
+      function (err, results, fields) {
+        res.json({msg:"Success", data:results});
+      }
+    );
+});
+
 router.post("/addcategory", (req, res) => {
     let { name } = req.body;
     if (!name) {
@@ -54,14 +63,42 @@ router.post("/addcategory", (req, res) => {
       );
 });
 
+router.post("/addsubcategory", (req, res) => {
+    let { name, category } = req.body;
+    if (!name || !category) {
+        res.json({msg:"Bad query"}, 403);
+        return;
+    }
+    db.query(
+        `INSERT INTO subcategories VALUES("${name}", "${category}");`,
+        function (err, results, fields) {
+          res.json({msg:"Success"});
+        }
+      );
+});
+
 router.post("/deletecategory", (req, res) => {
-    let { name } = req.body;
+    let { name} = req.body;
     if (!name) {
         res.json({msg:"Bad query"}, 403);
         return;
     }
     db.query(
         `DELETE FROM categories WHERE name LIKE "${name}";`,
+        function (err, results, fields) {
+          res.json({msg:"Success"});
+        }
+      );
+});
+
+router.post("/deletesubcategory", (req, res) => {
+    let { name, category} = req.body;
+    if (!name || !category) {
+        res.json({msg:"Bad query"}, 403);
+        return;
+    }
+    db.query(
+        `DELETE FROM subcategories WHERE name LIKE "${name}" AND category LIKE "${category}";`,
         function (err, results, fields) {
           res.json({msg:"Success"});
         }
@@ -83,13 +120,13 @@ router.post("/deleteword", (req, res) => {
 });
 
 router.post("/addword", (req, res) => {
-    let { polish, english, category } = req.body;
-    if (!polish || !english || !category) {
+    let { polish, english, category, subcategory, extended } = req.body;
+    if (!polish || !english || !category || !subcategory || !extended) {
         res.json({msg:"Bad query"}, 403);
         return;
     }
     db.query(
-        `INSERT INTO words VALUES(NULL, "${polish}", "${english}", "${category}");`,
+        `INSERT INTO words VALUES(NULL, "${polish}", "${english}", "${category}", "${subcategory}", ${extended});`,
         function (err, results, fields) {
           res.json({msg:"Success"});
         }
